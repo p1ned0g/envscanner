@@ -10,12 +10,16 @@
 // Make a result (If value names are duplicated, it has to be one element)
 
 import { EnvExtractor } from "./core/EnvExtractor.js";
+import { FileExtractor } from "./core/FileExtractor.js";
 import { DebugUtil } from "./utils/DebugUtil.js";
 
-// TODO: get files from designated folders
-const files = ["./test/test1.ts","./test/test2.ts"];
+// get a file list
+const fileExtractor = new FileExtractor(process.cwd());
+const fileList = fileExtractor.extractFiles();
+console.log(fileList)
 
-const envExtractor = new EnvExtractor(files, {});
+// extract envs from files in the file list
+const envExtractor = new EnvExtractor(fileList, {});
 const envList = envExtractor.extract();
 console.log(DebugUtil.formatList(envList))
 
