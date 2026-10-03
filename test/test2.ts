@@ -10,10 +10,10 @@ const portAgain = process.env.PORT;
 
 // 条件式で使用
 if (process.env.DEBUG === "true") {
-    console.log("Debug mode");
+  console.log("Debug mode");
 }
 
 // 関数内で使用
 function connect() {
-    const apiKey = process.env.API_KEY;
+  const apiKey = process.env.API_KEY;
 }
