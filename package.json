@@ -1,5 +1,5 @@
 {
-  "name": "env-checker",
+  "name": "envscanner",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
