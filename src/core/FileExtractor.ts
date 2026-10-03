@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 
 export class FileExtractor {
+    private static readonly FILE_NAME = ".env.example";
     private readonly rootDir: string;
     private readonly targetExtensions: string[];
     private readonly excludeDirs:Set<string>;
@@ -19,10 +20,14 @@ export class FileExtractor {
     }
 
     extractFiles():string[] {
-        return this.walk(this.rootDir)
+        return this.walkForTargetFiles(this.rootDir)
+    }
+
+    extractEnvExampleFile():string | null{
+        return this.walkForEnvExample(this.rootDir)
     }
     
-    private walk(dir:string) : string[] {
+    private walkForTargetFiles(dir:string) : string[] {
         const fileList: string[] = [];
         const entries = fs.readdirSync(dir, { withFileTypes: true });
         entries.forEach(e=>{
@@ -31,7 +36,7 @@ export class FileExtractor {
                 // skip if dir name is in excludeDirs
                 if(this.excludeDirs.has(e.name)) return
                 let reDir = path.join(e.parentPath,e.name)
-                fileList.push(...this.walk(reDir));
+                fileList.push(...this.walkForTargetFiles(reDir));
             } else {
                 // skip if extension name is not a target
                 if(!this.targetExtensions.includes(path.extname(e.name))) return
@@ -40,5 +45,27 @@ export class FileExtractor {
         })
     
         return fileList;
+    }
+
+    private walkForEnvExample(dir: string): string | null {
+        const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+        for (const e of entries) {
+            if (e.isDirectory()) {
+                if (this.excludeDirs.has(e.name)) continue;
+                const reDir = path.join(dir, e.name);
+                const result = this.walkForEnvExample(reDir);
+
+                if (result !== null) {
+                    return result;
+                }
+            } else {
+                if (e.name === FileExtractor.FILE_NAME) {
+                    return path.join(dir, e.name);
+                }
+            }
+        }
+
+        return null;
     }
 }
