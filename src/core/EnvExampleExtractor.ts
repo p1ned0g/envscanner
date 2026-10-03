@@ -13,16 +13,21 @@ export class EnvExampleExtractor{
         return content
                 // only support envs written in per line
                 .split(/\r?\n/)
+                .map((line, index)=> ({
+                    line,
+                    lineNum: index + 1
+                }))
                 // filter empty string
-                .filter(line => line.trim() !== "")
+                .filter(({line}) => line.trim() !== "")
                 // filter comment line
-                .filter(line => !line.startsWith("#"))
-                .map(line=>{
+                .filter(({line}) => !line.trim().startsWith("#"))
+                .map(({line, lineNum}) =>{
                     // AAA=BBB=CCC → name : AAA, value : BBB=CCC
                     const [name, ...values] = line.split("=")
                     const res:EnvExampleVariable = {
-                        name: name,
-                        value: values.join("=").trim()
+                        name: name.trim(),
+                        value: values.join("=").trim(),
+                        line: lineNum
                     }
                     return res
                 })
