@@ -51,9 +51,7 @@ export class EnvExtractor {
   ): EnvVariable[] {
     const extractedEnvList: EnvVariable[] = [];
     // Look into AST to extract env values
-    const visit = (node: ts.Node): void => {
-      // TODO: add more conditions to handle other cases
-      // ex. process.env[FOO], import.meta.env.FOO
+    const visit = (node: ts.Node, parent?: ts.Node): void => {
       if (
         // Is node a property access expression (using ".")?
         ts.isPropertyAccessExpression(node) &&
@@ -66,18 +64,19 @@ export class EnvExtractor {
         // Is the property name "env"?
         node.expression.name.text === "env"
       ) {
-        // Extract env values, default values(if exists) and line numbers
-        // If all conditions are passed, it means that the text is "process.env.FOO"
         const { line } = sourceFile.getLineAndCharacterOfPosition(
           node.getStart(sourceFile)
         );
+
+        const defaultValue = this.extractDefaultValue(parent);
+
         const extractedEnv: EnvVariable = {
           name: node.name.text,
-          // TODO: judge if this env is required or optional by default value
-          requirement: Requirement.REQUIRED,
-          // TODO: set default value if this env has default value
-          // ex. process.env.PORT ?? 3000 ← it means PORT env has default value
-          defaultValue: "",
+          requirement:
+            defaultValue === undefined
+              ? Requirement.REQUIRED
+              : Requirement.OPTIONAL,
+          defaultValue: defaultValue ?? "",
           envReference: [
             {
               fileName: file,
@@ -85,14 +84,44 @@ export class EnvExtractor {
             },
           ],
         };
+
         extractedEnvList.push(extractedEnv);
       }
 
-      ts.forEachChild(node, visit);
+      ts.forEachChild(node, (child) => visit(child, node));
     };
 
     visit(sourceFile);
 
     return extractedEnvList;
+  }
+
+  private extractDefaultValue(parent: ts.Node | undefined): string | undefined {
+    if (!parent) {
+      return undefined;
+    }
+
+    if (!ts.isBinaryExpression(parent)) {
+      return undefined;
+    }
+
+    if (
+      parent.operatorToken.kind !== ts.SyntaxKind.QuestionQuestionToken &&
+      parent.operatorToken.kind !== ts.SyntaxKind.BarBarToken
+    ) {
+      return undefined;
+    }
+
+    const right = parent.right;
+
+    if (ts.isStringLiteral(right)) {
+      return right.text;
+    }
+
+    if (ts.isNumericLiteral(right)) {
+      return right.text;
+    }
+
+    return undefined;
   }
 }

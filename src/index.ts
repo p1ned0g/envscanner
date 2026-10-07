@@ -1,6 +1,6 @@
 import { EnvScanner } from "./core/EnvScanner.js";
+import { OutputUtil } from "./utils/OutputUtil.js";
 
 const scanner = new EnvScanner();
 const res = scanner.scan();
-
-console.dir(res, { depth: null });
+OutputUtil.print(res);
