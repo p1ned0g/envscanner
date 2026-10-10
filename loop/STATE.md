@@ -8,6 +8,7 @@
 - **Retry count for current item:** 0 / 3
 
 ## Latest Run
+
 - **Outcome:** Added starter CI workflow and updated project guidance. Application logic was not intentionally changed.
 - **Checks:** Not run in the target GitHub Actions environment.
 - **Known gaps:** No test script; package release/CD intentionally not enabled.

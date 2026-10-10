@@ -1,9 +1,11 @@
 # envscanner — Claude Code Project Instructions
 
 ## Project Goal
+
 Maintain `envscanner`, a TypeScript tool that scans `.ts` and `.js` source files for environment-variable references and compares them with `.env.example`.
 
 ## Core Engineering Rules
+
 - Read relevant source code, configuration, tests, and CI workflows before changing behavior.
 - Prefer the smallest complete change that satisfies the approved task.
 - Preserve the project's TypeScript ESM convention: use `.js` extensions in relative imports.
@@ -16,6 +18,7 @@ Maintain `envscanner`, a TypeScript tool that scans `.ts` and `.js` source files
 - Never commit, push, publish, merge, create a pull request, create a GitHub release, or change remote state unless the user explicitly asks.
 
 ## Git and GitHub Rules
+
 - Inspect `git status`, the current branch, and the diff before changing files.
 - Never overwrite or discard user changes.
 - Keep one bounded backlog item per iteration and avoid mixing unrelated changes.
@@ -26,7 +29,9 @@ Maintain `envscanner`, a TypeScript tool that scans `.ts` and `.js` source files
 - Do not configure automatic publishing until package metadata, build output, release strategy, and registry authentication are explicitly reviewed.
 
 ## Development Loop
+
 For each non-trivial task:
+
 1. Select one bounded item from `loop/BACKLOG.md`, unless the user requests another.
 2. Define measurable acceptance criteria, tests, risks, and the expected GitHub/CI impact before implementation.
 3. Inspect the relevant implementation, tests, package scripts, and workflows.
@@ -37,6 +42,7 @@ For each non-trivial task:
 8. Stop when criteria pass, human input is required, or the retry limit is reached.
 
 ## CI Rules
+
 - Local quality gate: `npm run check`.
 - CI must use `npm ci` and a supported Node.js LTS version.
 - CI should run on pull requests and pushes to protected development branches.
@@ -45,6 +51,7 @@ For each non-trivial task:
 - Keep CI configuration changes covered by a local dry run or documented GitHub Actions validation where practical.
 
 ## Definition of Done
+
 - All acceptance criteria are met.
 - Relevant behavior and regression cases are tested, or the missing test coverage is explicitly tracked.
 - `npm run check` passes, or the failure/blocker is reported with evidence.

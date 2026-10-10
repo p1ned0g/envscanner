@@ -80,7 +80,8 @@ export class OutputUtil {
     console.log("✓ Matched");
     console.log("─────────");
     console.log(
-      "Environment variables defined in both\n" + "source code and .env.example.\n"
+      "Environment variables defined in both\n" +
+        "source code and .env.example.\n"
     );
 
     if (matched.length === 0) {
