@@ -17,6 +17,21 @@ Use one bounded item per iteration. Statuses: `TODO`, `IN_PROGRESS`, `BLOCKED`, 
 - [ ] **ENV-006: Validate CI on GitHub**  
       Acceptance: the workflow runs successfully on a pull request and pushes to `main` and `develop`; required checks are identified for branch protection.
 
+- [ ] **ENV-013: Extract environment references from `.js` files**  
+      Context: `FileExtractor` discovers `.js` files, but `EnvExtractor` creates the TypeScript program without `allowJs`, so `.js` sources are silently skipped (found during ENV-001; tracked by a `todo` test in `test/EnvExtractor.test.ts`).  
+      Acceptance: decide intended behavior; if supported, `.js` references are extracted and the `todo` test becomes a normal test; otherwise `.js` discovery and documentation are aligned.
+- [ ] **ENV-014: Define `.env.example` selection when multiple files exist**  
+      Context: `extractEnvExampleFile` returns the first match in directory traversal order, so a nested `.env.example` can win over the root one and the result is not guaranteed to be stable.  
+      Acceptance: selection rule (e.g. root first, or explicit path) is specified and tested.
+- [ ] **ENV-015: Specify `.env.example` parsing edge cases**  
+      Context: `export KEY=value` is parsed as name `export KEY`; quotes and inline comments are kept in values; duplicate keys produce duplicate matched/unused entries.  
+      Acceptance: supported format is specified, implemented, and tested for these cases.
+- [ ] **ENV-016: Define merging of duplicate references with different defaults**  
+      Context: when the same variable is referenced with and without a default, the first occurrence's requirement/default is kept and later ones are ignored.  
+      Acceptance: merge rule is specified and tested (may be combined with ENV-002).
+- [ ] **ENV-017: Test output formatting**  
+      Acceptance: `OutputUtil.print` output for missing/unused/matched/summary and required/optional status is covered by tests.
+
 ## P2 — Package and Release Readiness
 
 - [ ] **ENV-007: Document supported syntax and limitations**  

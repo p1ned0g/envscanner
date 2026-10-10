@@ -9,7 +9,9 @@
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm run lint && npm run format:check"
+    "pretest": "node -e \"require('node:fs').rmSync('dist/test', { recursive: true, force: true })\" && tsc -p tsconfig.test.json",
+    "test": "node --test \"dist/test/test/**/*.test.js\"",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm test"
   },
   "keywords": [],
   "author": "",

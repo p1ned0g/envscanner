@@ -23,7 +23,9 @@ npm ci
 npm run check
 ```
 
-The current CI checks TypeScript types, ESLint, and Prettier formatting. A test runner is not configured yet, so test automation remains a P1 backlog item. Do not interpret passing CI as proof that behavior is fully tested.
+`npm run check` runs TypeScript type-checking, ESLint, Prettier, and `npm test`. CI runs the same checks as separate steps.
+
+`npm test` compiles `src/` and `test/` with `tsconfig.test.json` into `dist/test/` and runs them with the Node.js built-in test runner (`node:test`). Tests create fixtures in temporary directories and use fake values only. Do not interpret passing CI as proof that all behavior is tested; known gaps are tracked in `BACKLOG.md`.
 
 ## Recommended workflow
 
