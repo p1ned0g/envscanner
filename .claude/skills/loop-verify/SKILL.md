@@ -1,11 +1,11 @@
 ---
 name: loop-verify
-description: Verify envscanner behavior and CI/CD changes against acceptance criteria with recorded evidence.
+description: Verify envscanner changes against the selected GitHub Issue acceptance criteria with recorded evidence.
 ---
 
 # Verify the Change
 
-1. Read acceptance criteria and inspect the actual diff.
+1. Read acceptance criteria from the selected GitHub Issue and inspect the actual diff.
 2. Run focused tests, `npm run check`, and `npm test` if a test script exists.
 3. Mark each criterion `PASS`, `FAIL`, or `NOT VERIFIED`, with evidence.
 4. For workflow changes, inspect triggers, permissions, concurrency, action versions, secret handling, branch filters, and whether required commands exist in `package.json`.

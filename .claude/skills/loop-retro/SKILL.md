@@ -1,6 +1,6 @@
 ---
 name: loop-retro
-description: Close one envscanner iteration by recording verified outcomes, updating backlog/state, and preserving reusable lessons.
+description: Record the verified outcome of one envscanner iteration, update runtime state, and preserve reusable lessons. This skill does not select or launch the next task.
 ---
 
 # Close One Iteration
@@ -12,4 +12,4 @@ description: Close one envscanner iteration by recording verified outcomes, upda
 5. Never record secrets, real environment values, tokens, or personal data.
 6. Add a lesson only when a concrete incident supports a reusable rule and, where practical, an enforcing test or check.
 7. Do not enable publishing or other external side effects during retrospective work.
-8. Summarize behavior changed, checks actually run, review findings, remaining risks, and the next backlog item.
+8. Summarize behavior changed, checks actually run, review findings, and remaining risks. Do not start or select the next task; the GitHub Actions workflow owns loop continuation after a PR is merged.

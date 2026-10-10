@@ -1,18 +1,30 @@
 # envscanner Loop Engineering and CI/CD
 
-This repository uses a bounded, verifiable, human-supervised development loop.
+This repository uses GitHub Issues as the task source of truth and a human-supervised GitHub Actions implementation loop.
 
-## Development loop
+## Autonomous loop
 
-`Backlog → Plan → Implement → Verify → Independent Review → Record Outcome → Next Item`
+`GitHub Issue → Select by priority → Plan → Implement → Verify → Independent Review → PR → Human merge → Next workflow run`
 
-- `BACKLOG.md`: prioritized work and measurable acceptance criteria.
-- `STATE.md`: current item, status, blockers, retry count, and next action.
-- `LEARNINGS.md`: reusable lessons backed by concrete incidents.
-- `runs.jsonl`: concise records of completed or blocked iterations.
+- GitHub Issues: authoritative task descriptions, priorities, and open/closed state.
+- `loop/STATE.md`: local/runtime notes only; it is not a second backlog.
+- `loop/LEARNINGS.md`: reusable lessons backed by concrete incidents.
+- `loop/runs.jsonl`: historical run records.
 - `.claude/skills/`: task-specific procedures.
-- `.claude/agents/`: optional independent reviewer role.
-- `.github/workflows/ci.yml`: pull-request and branch quality gates.
+- `.github/workflows/loop.yml`: selects one issue, runs Claude Code, and opens a PR.
+- `.github/workflows/ci.yml`: validates changes on pushes and pull requests.
+
+The loop runs one Issue per workflow execution and stops after creating a PR. It does not merge, publish, or deploy. The next iteration starts only after a loop PR targeting `develop` is merged. If an open loop PR exists, manual dispatch stops without selecting another issue.
+
+## One-time backlog migration
+
+`loop/BACKLOG.md` is a migration source only. After labels and GitHub CLI authentication are ready, run from the repository root:
+
+```bash
+node loop/scripts/migrate-backlog-to-issues.mjs
+```
+
+The script migrates unchecked ENV items into GitHub Issues and skips IDs already present. Review the resulting Issues before enabling the loop.
 
 ## Local quality gate
 
@@ -23,28 +35,16 @@ npm ci
 npm run check
 ```
 
-`npm run check` runs TypeScript type-checking, ESLint, Prettier, and `npm test`. CI runs the same checks as separate steps.
+`npm run check` runs TypeScript type-checking, ESLint, Prettier, and `npm test`. Tests use the Node.js built-in test runner (`node:test`) and fake values only. Do not interpret passing CI as proof that all behavior is tested; track remaining gaps as GitHub Issues.
 
-`npm test` compiles `src/` and `test/` with `tsconfig.test.json` into `dist/test/` and runs them with the Node.js built-in test runner (`node:test`). Tests create fixtures in temporary directories and use fake values only. Do not interpret passing CI as proof that all behavior is tested; known gaps are tracked in `BACKLOG.md`.
+## Required configuration
 
-## Recommended workflow
-
-1. Create a branch for one bounded task.
-2. Plan the task and agree on acceptance criteria.
-3. Implement and test locally.
-4. Run `npm run check`.
-5. Review the diff and commit.
-6. Open a pull request; CI must pass before merge.
-7. Review the outcome and update the loop state.
-
-## CI and CD are different
-
-- **CI** validates changes on pushes and pull requests. The starter GitHub Actions workflow is included.
-- **CD** publishes or deploys a release artifact. Do not enable npm publishing until package entry points/build output, package contents, versioning, release process, and npm trusted publishing or token setup are ready.
+See [GitHub Actions setup](../.github/README.md) for required repository secrets, GitHub App permissions, labels, first-run instructions, and recovery steps.
 
 ## Safety
 
-- Maximum 3 repair attempts per backlog item, then stop and report the blocker.
-- No automatic push, merge, release, or publish.
+- Maximum three repair attempts per task, then stop and report the blocker.
+- Human review and merge are mandatory.
+- No automatic publishing, deployment, or merging.
 - Never place real environment values or credentials in prompts, logs, fixtures, or run records.
 - GitHub Actions permissions should remain least-privilege.

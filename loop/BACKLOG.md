@@ -1,10 +1,18 @@
-# Backlog
+# Legacy Backlog (Migration Source Only)
 
-Use one bounded item per iteration. Statuses: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
+GitHub Issues are the single source of truth for task status and priority after migration. Do not maintain a second active backlog here.
+
+This file is retained temporarily as a migration source for the existing unchecked ENV-002 through ENV-017 items. Run the one-time migration script from the repository root after configuring `gh` authentication:
+
+```bash
+node loop/scripts/migrate-backlog-to-issues.mjs
+```
+
+The script skips IDs that already exist in GitHub Issues. Review the created Issues and labels before starting the autonomous loop. Once migration is verified, this file may be archived or removed in a separate reviewed change.
 
 ## P1 — Correctness and Quality Gates
 
-- [ ] **ENV-001: Establish automated tests**  
+- [x] **ENV-001: Establish automated tests**  
       Acceptance: configure a test runner; cover `.env.example` parsing, excluded directories, duplicate-reference merging, comparison categories, and core error behavior; `npm test` passes in local development and CI.
 - [ ] **ENV-002: Make default-value extraction safe and explicit**  
       Acceptance: unexpected AST parent nodes do not throw; supported `??` / `||` literal defaults are specified and tested; unsupported expressions are not misreported as literal defaults.

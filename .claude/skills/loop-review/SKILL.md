@@ -1,6 +1,6 @@
 ---
 name: loop-review
-description: Independently review envscanner diffs and GitHub Actions workflows for correctness, regressions, security, permissions, and release risks.
+description: Independently review envscanner diffs for correctness, regressions, security, workflow permissions, and release risks before a PR is created.
 ---
 
 # Independent Review
