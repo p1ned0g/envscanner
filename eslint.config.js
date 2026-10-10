@@ -8,5 +8,15 @@ export default tseslint.config(
   eslintConfigPrettier,
   {
     ignores: ["dist/", "node_modules/"],
-  }
+  },
+  {
+    files: ["**/*.mjs", "**/*.js", "**/*.cjs"],
+    languageOptions: {
+      globals: {
+        console: "readonly",
+        process: "readonly",
+        URL: "readonly",
+      },
+    },
+  },
 );

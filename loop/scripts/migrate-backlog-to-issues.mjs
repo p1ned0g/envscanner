@@ -8,15 +8,27 @@ function gh(args) {
   return execFileSync('gh', args, { encoding: 'utf8' }).trim();
 }
 
+const requiredLabels = [
+  { name: 'priority:P1', color: 'D93F0B', description: 'High priority' },
+  { name: 'priority:P2', color: 'FBCA04', description: 'Normal priority' },
+  { name: 'type:bug', color: 'D73A4A', description: 'Bug or incorrect behavior' },
+  { name: 'type:feature', color: 'A2EEEF', description: 'New feature or capability' },
+  { name: 'type:tech-debt', color: 'BFD4F2', description: 'Technical debt or maintenance' },
+  { name: 'type:tests', color: 'D4C5F9', description: 'Tests or quality gates' },
+  { name: 'type:docs', color: '0075CA', description: 'Documentation' },
+];
+
 const availableLabels = new Set(
   JSON.parse(gh(['label', 'list', '--limit', '500', '--json', 'name'])).map((label) => label.name),
 );
-const requiredLabels = [
-  'priority:P1', 'priority:P2', 'type:bug', 'type:feature', 'type:tech-debt', 'type:tests', 'type:docs',
-];
-const missing = requiredLabels.filter((label) => !availableLabels.has(label));
-if (missing.length) {
-  throw new Error(`Create these labels before migration: ${missing.join(', ')}`);
+for (const label of requiredLabels) {
+  if (availableLabels.has(label.name)) continue;
+  console.log(`Creating missing label: ${label.name}`);
+  gh([
+    'label', 'create', label.name,
+    '--color', label.color,
+    '--description', label.description,
+  ]);
 }
 
 const items = [];
