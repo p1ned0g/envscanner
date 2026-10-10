@@ -1,41 +1,73 @@
-import { readFileSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
+import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 
-const backlogPath = new URL('../BACKLOG.md', import.meta.url);
-const backlog = readFileSync(backlogPath, 'utf8');
+const backlogPath = new URL("../BACKLOG.md", import.meta.url);
+const backlog = readFileSync(backlogPath, "utf8");
 
 function gh(args) {
-  return execFileSync('gh', args, { encoding: 'utf8' }).trim();
+  return execFileSync("gh", args, { encoding: "utf8" }).trim();
 }
 
 const requiredLabels = [
-  { name: 'priority:P1', color: 'D93F0B', description: 'High priority' },
-  { name: 'priority:P2', color: 'FBCA04', description: 'Normal priority' },
-  { name: 'type:bug', color: 'D73A4A', description: 'Bug or incorrect behavior' },
-  { name: 'type:feature', color: 'A2EEEF', description: 'New feature or capability' },
-  { name: 'type:tech-debt', color: 'BFD4F2', description: 'Technical debt or maintenance' },
-  { name: 'type:tests', color: 'D4C5F9', description: 'Tests or quality gates' },
-  { name: 'type:docs', color: '0075CA', description: 'Documentation' },
+  {
+    name: "priority:P0",
+    color: "B60205",
+    description: "Highest priority; critical issues",
+  },
+  { name: "priority:P1", color: "D93F0B", description: "High priority" },
+  { name: "priority:P2", color: "FBCA04", description: "Normal priority" },
+  {
+    name: "priority:P3",
+    color: "C5DEF5",
+    description: "Low priority; future improvements",
+  },
+  {
+    name: "type:bug",
+    color: "D73A4A",
+    description: "Bug or incorrect behavior",
+  },
+  {
+    name: "type:feature",
+    color: "A2EEEF",
+    description: "New feature or capability",
+  },
+  {
+    name: "type:tech-debt",
+    color: "BFD4F2",
+    description: "Technical debt or maintenance",
+  },
+  {
+    name: "type:tests",
+    color: "D4C5F9",
+    description: "Tests or quality gates",
+  },
+  { name: "type:docs", color: "0075CA", description: "Documentation" },
 ];
 
 const availableLabels = new Set(
-  JSON.parse(gh(['label', 'list', '--limit', '500', '--json', 'name'])).map((label) => label.name),
+  JSON.parse(gh(["label", "list", "--limit", "500", "--json", "name"])).map(
+    (label) => label.name
+  )
 );
 for (const label of requiredLabels) {
   if (availableLabels.has(label.name)) continue;
   console.log(`Creating missing label: ${label.name}`);
   gh([
-    'label', 'create', label.name,
-    '--color', label.color,
-    '--description', label.description,
+    "label",
+    "create",
+    label.name,
+    "--color",
+    label.color,
+    "--description",
+    label.description,
   ]);
 }
 
 const items = [];
-let priority = 'priority:P1';
+let priority = "priority:P1";
 let current = null;
 for (const line of backlog.split(/\r?\n/)) {
-  const heading = line.match(/^## (P[12])\s/);
+  const heading = line.match(/^## (P[0-3])\s/);
   if (heading) priority = `priority:${heading[1]}`;
 
   const item = line.match(/^- \[ \] \*\*(ENV-\d+): (.+?)\*\*\s*$/);
@@ -53,22 +85,44 @@ for (const line of backlog.split(/\r?\n/)) {
     items.push(current);
     current = null;
   }
-  if (current && /^\s{6,}\S/.test(line)) current.details.push(line.trim());
+  if (current && /^\s{6,}\S/.test(line)) {
+    current.details.push(line.trim());
+  }
 }
 if (current) items.push(current);
 
 function typeFor(item) {
-  const text = `${item.title} ${item.details.join(' ')}`.toLowerCase();
-  if (/document|readme|supported syntax|versioning policy/.test(text)) return 'type:docs';
-  if (/test|ci|quality gate/.test(text)) return 'type:tests';
-  if (/package|release|publishing|branch protection|cli argument/.test(text)) return 'type:tech-debt';
-  if (/bug|error|safe|extract|normalize|selection|parsing|duplicate|default-value/.test(text)) return 'type:bug';
-  return 'type:feature';
+  const text = `${item.title} ${item.details.join(" ")}`.toLowerCase();
+  if (/document|readme|supported syntax|versioning policy/.test(text))
+    return "type:docs";
+  if (/test|ci|quality gate/.test(text)) return "type:tests";
+  if (/package|release|publishing|branch protection|cli argument/.test(text)) {
+    return "type:tech-debt";
+  }
+  if (
+    /bug|error|safe|extract|normalize|selection|parsing|duplicate|default-value/.test(
+      text
+    )
+  ) {
+    return "type:bug";
+  }
+  return "type:feature";
 }
 
 for (const item of items) {
   const existing = JSON.parse(
-    gh(['issue', 'list', '--state', 'all', '--limit', '500', '--search', `${item.id} in:title`, '--json', 'number,title']),
+    gh([
+      "issue",
+      "list",
+      "--state",
+      "all",
+      "--limit",
+      "500",
+      "--search",
+      `${item.id} in:title`,
+      "--json",
+      "number,title",
+    ])
   );
   if (existing.some((issue) => issue.title.startsWith(`${item.id}:`))) {
     console.log(`Skipping ${item.id}: matching issue already exists.`);
@@ -77,19 +131,31 @@ for (const item of items) {
 
   const body = [
     `Migrated from \`loop/BACKLOG.md\` (${item.id}).`,
-    '',
-    '## Context and acceptance criteria',
-    ...(item.details.length ? item.details.map((detail) => `- ${detail}`) : ['- Define and document measurable acceptance criteria before implementation.']),
-    '',
-    '## Automation rules',
-    '- Implement only this issue in one iteration.',
-    '- Run `npm ci` and `npm run check`.',
-    '- Create a pull request targeting `develop`; do not merge it automatically.',
-  ].join('\n');
+    "",
+    "## Context and acceptance criteria",
+    ...(item.details.length
+      ? item.details.map((detail) => `- ${detail}`)
+      : [
+          "- Define and document measurable acceptance criteria before implementation.",
+        ]),
+    "",
+    "## Automation rules",
+    "- Implement only this issue in one iteration.",
+    "- Run `npm ci` and `npm run check`.",
+    "- Create a pull request targeting `develop`; do not merge it automatically.",
+  ].join("\n");
 
   const url = gh([
-    'issue', 'create', '--title', `${item.id}: ${item.title}`, '--body', body,
-    '--label', item.priority, '--label', typeFor(item),
+    "issue",
+    "create",
+    "--title",
+    `${item.id}: ${item.title}`,
+    "--body",
+    body,
+    "--label",
+    item.priority,
+    "--label",
+    typeFor(item),
   ]);
   console.log(`${item.id} -> ${url}`);
 }
