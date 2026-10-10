@@ -4,7 +4,7 @@ Use one bounded item per iteration. Statuses: `TODO`, `IN_PROGRESS`, `BLOCKED`, 
 
 ## P1 — Correctness and Quality Gates
 
-- [ ] **ENV-001: Establish automated tests**  
+- [x] **ENV-001: Establish automated tests**  
       Acceptance: configure a test runner; cover `.env.example` parsing, excluded directories, duplicate-reference merging, comparison categories, and core error behavior; `npm test` passes in local development and CI.
 - [ ] **ENV-002: Make default-value extraction safe and explicit**  
       Acceptance: unexpected AST parent nodes do not throw; supported `??` / `||` literal defaults are specified and tested; unsupported expressions are not misreported as literal defaults.

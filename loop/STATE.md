@@ -1,14 +1,15 @@
 # Loop State
 
-- **Current item:** ENV-001: Establish automated tests (branch `feature/env-001-tests`)
-- **Status:** IN_PROGRESS — implemented and verified locally; awaiting user review/commit and a CI run on GitHub
-- **Last completed item:** CI workflow and loop-engineering guidance scaffolded
-- **Blockers:** None locally. The CI `npm test` step has not run on GitHub yet (see ENV-006). Package metadata/build entry points are not ready for npm publishing.
-- **Next action:** User reviews the diff and commits/opens a PR; once CI passes on GitHub, close ENV-001 with `loop-retro`. Then ENV-013 (`.js` extraction gap) or ENV-006.
+- **Current item:** None
+- **Status:** Ready
+- **Last completed item:** ENV-001: Establish automated tests (PR #1, merged into `develop` as `6c63786`)
+- **Blockers:** None for ENV-001. Package metadata/build entry points are not ready for npm publishing.
+- **Next action:** Plan the next P1 item. Recommended: ENV-013 (`.js` files are discovered but not extracted), then ENV-002.
 - **Retry count for current item:** 0 / 3
 
 ## Latest Run
 
-- **Outcome:** Added `node:test` suite compiled with `tsc` (`tsconfig.test.json` → `dist/test/`), with no new dependencies. Tests cover `.env.example` parsing, file discovery and excluded directories, AST extraction/defaults/duplicate merging, comparison categories, and scanner error behavior. `npm test` added to `npm run check` and as a CI step. No `src/` changes.
-- **Checks:** `npm test` → 38 tests, 37 pass, 0 fail, 1 todo (exit 0). `npm run check` → exit 0. Mutation check (removed `unusedList.push` in `EnvComparator`) → 3 failures, exit 1; source restored. No temporary directories left behind. Node 24.21.0 locally; Node 22 (CI) not run.
-- **Known gaps:** `.js` files are discovered but not extracted (ENV-013, tracked as a `todo` test). New backlog items ENV-014–ENV-017 record untested/undefined behavior. `OutputUtil` not covered (ENV-017).
+- **Outcome:** ENV-001 DONE. Added a `node:test` suite compiled with `tsc` (`tsconfig.test.json` → `dist/test/`) with no new dependencies, covering `.env.example` parsing, file discovery and excluded directories, AST extraction/defaults/duplicate merging, comparison categories, and scanner error behavior. `npm test` is part of `npm run check` and a CI step. No `src/` changes.
+- **Checks:** Local (Node 24.21.0): `npm test` → 38 tests, 37 pass, 0 fail, 1 todo; `npm run check` → exit 0; mutation check → 3 failures as expected. GitHub Actions (Node 22.23.3): PR #1 run 38057562223 → success (38 tests, 37 pass, 0 fail, 1 todo); `develop` push run 38057829610 after merge → success (same counts).
+- **Review findings:** P2 only — `todo` test is listed under "failing tests" in runner output although the run passes; `ts-node` (unused) and `@types/node` (compile-time only) are listed under runtime `dependencies` (for ENV-008).
+- **Known gaps:** `.js` extraction (ENV-013, `todo` test); `.env.example` selection, parsing edge cases, duplicate-default merging, and output formatting (ENV-014–ENV-017). CI annotations: `actions/checkout@v4` and `actions/setup-node@v4` target deprecated Node 20; `ubuntu-latest` migrates to Ubuntu 26 from 2026-10-19 (not yet tracked).
