@@ -124,6 +124,29 @@ describe("EnvExampleExtractor.extract", () => {
     }
   });
 
+  it("rejects duplicate keys, adjacent or not, naming the key and both lines", () => {
+    const cases: [string, number, number][] = [
+      ["A=1\nA=2", 1, 2],
+      ["A=1\nB=2\n# c\nA=3", 1, 4],
+      ["A=1\nexport A=2", 1, 2],
+      ["export A=1\nB=2\nA=3", 1, 3],
+    ];
+    for (const [content, first, dup] of cases) {
+      assert.throws(
+        () => extract(content),
+        (err: Error) =>
+          err.message.includes(`.env.example:${dup}`) &&
+          err.message.includes('duplicate variable "A"') &&
+          err.message.includes(`first defined on line ${first}`) &&
+          err.message.includes(`duplicated on line ${dup}`)
+      );
+    }
+  });
+
+  it("treats keys case-sensitively for duplicates", () => {
+    assert.equal(extract("a=1\nA=2").length, 2);
+  });
+
   it("throws with file and line for unmatched quotes", () => {
     for (const bad of ['A="abc', "A='abc", "A=\"abc'", 'A="abc" tail']) {
       assert.throws(

@@ -10,6 +10,7 @@ export class EnvExampleExtractor {
   extract(): EnvExampleVariable[] {
     const content = fs.readFileSync(this.filePath, "utf-8");
     const variables: EnvExampleVariable[] = [];
+    const firstSeen = new Map<string, number>();
 
     // only support envs written in per line
     content.split(/\r?\n/).forEach((line, index) => {
@@ -30,6 +31,14 @@ export class EnvExampleExtractor {
           `${this.filePath}:${lineNum}: invalid variable name "${name}"`
         );
       }
+
+      const firstLine = firstSeen.get(name);
+      if (firstLine !== undefined) {
+        throw new Error(
+          `${this.filePath}:${lineNum}: duplicate variable "${name}" (first defined on line ${firstLine}, duplicated on line ${lineNum})`
+        );
+      }
+      firstSeen.set(name, lineNum);
 
       variables.push({
         name,
