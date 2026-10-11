@@ -73,6 +73,21 @@ describe("EnvScanner", () => {
     });
   });
 
+  it("fails the scan when .env.example has duplicate keys", () => {
+    useProject({
+      ".env.example": "A=fake\nB=fake\nexport A=fake\n",
+      "index.ts": "const a = process.env.A;\n",
+    });
+
+    assert.throws(
+      () => new EnvScanner(),
+      (err: Error) =>
+        err.message.includes('duplicate variable "A"') &&
+        err.message.includes("first defined on line 1") &&
+        err.message.includes("duplicated on line 3")
+    );
+  });
+
   it("throws when .env.example is not found", () => {
     useProject({ "index.ts": "const a = process.env.A;\n" });
 
