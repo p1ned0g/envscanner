@@ -19,8 +19,26 @@ export class FileExtractor {
     return this.walkForTargetFiles(this.rootDir);
   }
 
+  // A root-level file always wins; otherwise a single nested file is used.
+  // Several nested candidates are ambiguous and raise an error.
   extractEnvExampleFile(): string | null {
-    return this.walkForEnvExample(this.rootDir);
+    const rootCandidate = path.join(this.rootDir, FileExtractor.FILE_NAME);
+    if (fs.existsSync(rootCandidate) && fs.statSync(rootCandidate).isFile()) {
+      return rootCandidate;
+    }
+
+    const found: string[] = [];
+    this.walkForEnvExample(this.rootDir, found);
+
+    if (found.length === 0) return null;
+    if (found.length === 1) return found[0];
+
+    const candidates = found
+      .map((f) => path.relative(this.rootDir, f).split(path.sep).join("/"))
+      .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+    throw new Error(
+      `Multiple ${FileExtractor.FILE_NAME} files were found and no root-level file exists: ${candidates.join(", ")}. Add a ${FileExtractor.FILE_NAME} at the project root to select one.`
+    );
   }
 
   private walkForTargetFiles(dir: string): string[] {
@@ -43,25 +61,16 @@ export class FileExtractor {
     return fileList;
   }
 
-  private walkForEnvExample(dir: string): string | null {
+  private walkForEnvExample(dir: string, found: string[]): void {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
 
     for (const e of entries) {
       if (e.isDirectory()) {
         if (this.excludeDirs.has(e.name)) continue;
-        const reDir = path.join(dir, e.name);
-        const result = this.walkForEnvExample(reDir);
-
-        if (result !== null) {
-          return result;
-        }
-      } else {
-        if (e.name === FileExtractor.FILE_NAME) {
-          return path.join(dir, e.name);
-        }
+        this.walkForEnvExample(path.join(dir, e.name), found);
+      } else if (e.name === FileExtractor.FILE_NAME) {
+        found.push(path.join(dir, e.name));
       }
     }
-
-    return null;
   }
 }

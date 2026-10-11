@@ -125,6 +125,49 @@ describe("FileExtractor", () => {
       assert.equal(new FileExtractor(dir).extractEnvExampleFile(), null);
     });
 
+    it("prefers the root file over nested candidates", () => {
+      dir = makeTmpDir({
+        ".env.example": "A=1",
+        "a/.env.example": "A=1",
+        "b/c/.env.example": "A=1",
+      });
+
+      assert.equal(
+        new FileExtractor(dir).extractEnvExampleFile(),
+        path.join(dir, ".env.example")
+      );
+    });
+
+    it("throws listing sorted candidates when several nested files exist", () => {
+      dir = makeTmpDir({
+        "z/.env.example": "A=1",
+        "a/b/.env.example": "A=1",
+        "m/.env.example": "A=1",
+      });
+      const extractor = new FileExtractor(dir);
+
+      assert.throws(
+        () => extractor.extractEnvExampleFile(),
+        (err: Error) =>
+          err.message.includes(
+            "a/b/.env.example, m/.env.example, z/.env.example"
+          ) && !err.message.includes("\\")
+      );
+    });
+
+    it("ignores excluded directories when counting candidates", () => {
+      dir = makeTmpDir({
+        "node_modules/pkg/.env.example": "A=1",
+        "dist/.env.example": "A=1",
+        "config/.env.example": "A=1",
+      });
+
+      assert.equal(
+        new FileExtractor(dir).extractEnvExampleFile(),
+        path.join(dir, "config", ".env.example")
+      );
+    });
+
     it("does not match similarly named files", () => {
       dir = makeTmpDir({
         ".env": "A=1",
