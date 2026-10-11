@@ -130,6 +130,15 @@ describe("EnvExtractor.extract", () => {
     assert.equal(env.requirement, Requirement.REQUIRED);
   });
 
+  it("reports root-relative posix paths when a root directory is given", () => {
+    dir = makeTmpDir({ "a/b/index.ts": "const x = process.env.X;\n" });
+    const file = path.join(dir, "a", "b", "index.ts");
+
+    const [env] = new EnvExtractor([file], {}, dir).extract();
+
+    assert.deepEqual(env.envReference, [{ fileName: "a/b/index.ts", line: 1 }]);
+  });
+
   it("merges duplicate references across files into one entry", () => {
     const result = extract({
       "a.ts": "const a = process.env.SHARED;\n",

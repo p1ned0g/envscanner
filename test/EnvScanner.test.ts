@@ -52,6 +52,19 @@ describe("EnvScanner", () => {
     assert.equal(result.matched[0].example.line, 2);
   });
 
+  it("reports reference paths relative to the root with forward slashes", () => {
+    useProject({
+      ".env.example": "A=fake\n",
+      "src/deep/index.ts": "const a = process.env.A;\n",
+    });
+
+    const result = new EnvScanner().scan();
+
+    assert.deepEqual(result.matched[0].source.envReference, [
+      { fileName: "src/deep/index.ts", line: 1 },
+    ]);
+  });
+
   it("throws when no target source files are found", () => {
     useProject({ ".env.example": "A=fake\n", "README.md": "" });
 
