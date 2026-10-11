@@ -230,21 +230,38 @@ describe("EnvExtractor.extract", () => {
     assert.deepEqual(result, []);
   });
 
-  // Known gap: FileExtractor discovers .js files, but EnvExtractor builds the
-  // TypeScript program without `allowJs`, so .js sources are silently skipped.
-  // Tracked in loop/BACKLOG.md (ENV-013); not asserted until behavior is decided.
-  it(
-    "extracts references from .js files",
-    { todo: "ENV-013: .js files are skipped without allowJs" },
-    () => {
-      const result = extract({
-        "index.js": "const a = process.env.FROM_JS;\n",
-      });
+  it("extracts property access, bracket notation and defaults from .js files", () => {
+    const result = extract({
+      "index.js": [
+        "const a = process.env.FROM_JS;",
+        'const b = process.env["BRACKET_JS"];',
+        'const c = process.env.MODE_JS ?? "development";',
+      ].join("\n"),
+    });
 
-      assert.deepEqual(
-        result.map((e) => e.name),
-        ["FROM_JS"]
-      );
-    }
-  );
+    assert.deepEqual(
+      result.map((e) => [e.name, e.requirement, e.defaultValue]),
+      [
+        ["FROM_JS", Requirement.REQUIRED, ""],
+        ["BRACKET_JS", Requirement.REQUIRED, ""],
+        ["MODE_JS", Requirement.OPTIONAL, "development"],
+      ]
+    );
+  });
+
+  it("scans .ts and .js files together and merges shared references", () => {
+    const result = extract({
+      "a.ts": "const a = process.env.SHARED;\nconst t = process.env.TS_ONLY;\n",
+      "b.js": "const b = process.env.SHARED;\nconst j = process.env.JS_ONLY;\n",
+    });
+
+    assert.deepEqual(
+      result.map((e) => e.name),
+      ["SHARED", "TS_ONLY", "JS_ONLY"]
+    );
+    assert.deepEqual(result[0].envReference, [
+      { fileName: path.join(dir!, "a.ts"), line: 1 },
+      { fileName: path.join(dir!, "b.js"), line: 1 },
+    ]);
+  });
 });
