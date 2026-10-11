@@ -68,7 +68,7 @@ export class EnvExtractor {
           node.getStart(sourceFile)
         );
 
-        const defaultValue = this.extractDefaultValue(parent);
+        const defaultValue = this.extractDefaultValue(node, parent);
 
         const extractedEnv: EnvVariable = {
           name: node.name.text,
@@ -96,12 +96,14 @@ export class EnvExtractor {
     return extractedEnvList;
   }
 
-  private extractDefaultValue(parent: ts.Node | undefined): string | undefined {
-    if (!parent) {
-      return undefined;
-    }
-
-    if (!ts.isBinaryExpression(parent)) {
+  // Only `process.env.NAME ?? <literal>` and `process.env.NAME || <literal>`
+  // (env access as the direct left operand; string, numeric or substitution-free
+  // template literal on the right) count as defaults. Anything else is not one.
+  private extractDefaultValue(
+    node: ts.Node,
+    parent: ts.Node | undefined
+  ): string | undefined {
+    if (!parent || !ts.isBinaryExpression(parent) || parent.left !== node) {
       return undefined;
     }
 
@@ -119,6 +121,10 @@ export class EnvExtractor {
     }
 
     if (ts.isNumericLiteral(right)) {
+      return right.text;
+    }
+
+    if (ts.isNoSubstitutionTemplateLiteral(right)) {
       return right.text;
     }
 
