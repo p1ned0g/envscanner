@@ -1,6 +1,3 @@
-import { EnvScanner } from "./core/EnvScanner.js";
-import { OutputUtil } from "./utils/OutputUtil.js";
+import { run } from "./cli.js";
 
-const scanner = new EnvScanner();
-const res = scanner.scan();
-OutputUtil.print(res);
+process.exitCode = run(process.argv.slice(2));
