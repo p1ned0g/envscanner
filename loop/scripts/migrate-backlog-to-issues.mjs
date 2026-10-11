@@ -66,37 +66,63 @@ for (const label of requiredLabels) {
 const items = [];
 let priority = "priority:P1";
 let current = null;
+
+function finishCurrent() {
+  if (!current) return;
+  while (current.bodyLines.length > 0 && current.bodyLines.at(-1) === "") {
+    current.bodyLines.pop();
+  }
+  items.push(current);
+  current = null;
+}
+
 for (const line of backlog.split(/\r?\n/)) {
   const heading = line.match(/^## (P[0-3])\s/);
-  if (heading) priority = `priority:${heading[1]}`;
+  if (heading) {
+    finishCurrent();
+    priority = `priority:${heading[1]}`;
+    continue;
+  }
+
+  if (/^## /.test(line)) {
+    finishCurrent();
+    continue;
+  }
 
   const item = line.match(/^- \[ \] \*\*(ENV-\d+): (.+?)\*\*\s*$/);
   if (item) {
-    if (current) items.push(current);
-    current = { id: item[1], title: item[2], priority, details: [] };
+    finishCurrent();
+    current = {
+      id: item[1],
+      title: item[2],
+      priority,
+      bodyLines: [],
+    };
     continue;
   }
-  if (current && /^- \[[ x]\] \*\*ENV-\d+:/.test(line)) {
-    items.push(current);
-    current = null;
-    continue;
-  }
-  if (current && /^## /.test(line)) {
-    items.push(current);
-    current = null;
-  }
-  if (current && /^\s{6,}\S/.test(line)) {
-    current.details.push(line.trim());
+
+  if (current) {
+    // Backlog task details are indented by two spaces for Markdown list nesting.
+    // Remove exactly that prefix while preserving nested lists and blank lines.
+    current.bodyLines.push(line.startsWith("  ") ? line.slice(2) : line);
   }
 }
-if (current) items.push(current);
+finishCurrent();
 
 function typeFor(item) {
-  const text = `${item.title} ${item.details.join(" ")}`.toLowerCase();
-  if (/document|readme|supported syntax|versioning policy/.test(text))
+  const text = `${item.title} ${item.bodyLines.join(" ")}`.toLowerCase();
+  if (
+    /document|readme|supported syntax|versioning policy|commit message/.test(
+      text
+    )
+  )
     return "type:docs";
   if (/test|ci|quality gate/.test(text)) return "type:tests";
-  if (/package|release|publishing|branch protection|cli argument/.test(text)) {
+  if (
+    /package|release|publishing|branch protection|cli argument|commit convention/.test(
+      text
+    )
+  ) {
     return "type:tech-debt";
   }
   if (
@@ -115,7 +141,7 @@ for (const item of items) {
       "issue",
       "list",
       "--state",
-      "all",
+      "open",
       "--limit",
       "500",
       "--search",
@@ -129,20 +155,22 @@ for (const item of items) {
     continue;
   }
 
+  const specification = item.bodyLines.join("\n").trim();
   const body = [
     `Migrated from \`loop/BACKLOG.md\` (${item.id}).`,
     "",
-    "## Context and acceptance criteria",
-    ...(item.details.length
-      ? item.details.map((detail) => `- ${detail}`)
-      : [
-          "- Define and document measurable acceptance criteria before implementation.",
-        ]),
+    "## Task specification",
+    "",
+    specification ||
+      "Define measurable acceptance criteria before implementation.",
     "",
     "## Automation rules",
     "- Implement only this issue in one iteration.",
-    "- Run `npm ci` and `npm run check`.",
-    "- Create a pull request targeting `develop`; do not merge it automatically.",
+    "- Treat this Issue as the task source of truth, subject to `CLAUDE.md` security rules.",
+    "- Run `npm ci` and `npm run check`; report actual outcomes.",
+    "- Create exactly one pull request targeting `develop` after checks pass.",
+    "- Include a closing reference to this Issue (for example, `Closes #123` using its actual number), a summary, tests run, and known risks in the PR body.",
+    "- Never merge, publish, deploy, expose secrets, or weaken permissions.",
   ].join("\n");
 
   const url = gh([
