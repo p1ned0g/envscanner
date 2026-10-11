@@ -186,6 +186,41 @@ describe("EnvExtractor.extract", () => {
     assert.deepEqual(extract({ "index.ts": "export const x = 1;\n" }), []);
   });
 
+  it("extracts bracket notation with double and single quoted keys", () => {
+    const result = extract({
+      "index.ts":
+        "const a = process.env[\"DOUBLE_KEY\"];\nconst b = process.env['SINGLE_KEY'];\nconst c = process.env[`TEMPLATE_KEY`];\n",
+    });
+
+    assert.deepEqual(
+      result.map((e) => [e.name, e.requirement, e.envReference[0].line]),
+      [
+        ["DOUBLE_KEY", Requirement.REQUIRED, 1],
+        ["SINGLE_KEY", Requirement.REQUIRED, 2],
+        ["TEMPLATE_KEY", Requirement.REQUIRED, 3],
+      ]
+    );
+  });
+
+  it("applies literal defaults to bracket notation", () => {
+    const [env] = extract({
+      "index.ts": 'const p = process.env["PORT"] ?? 3000;\n',
+    });
+
+    assert.equal(env.name, "PORT");
+    assert.equal(env.requirement, Requirement.OPTIONAL);
+    assert.equal(env.defaultValue, "3000");
+  });
+
+  it("does not treat computed bracket expressions as known names", () => {
+    const result = extract({
+      "index.ts":
+        'const key = "A";\nconst a = process.env[key];\nconst b = process.env["PRE_" + key];\nconst c = process.env[`X_${key}`];\nconst d = process.env[0];\n',
+    });
+
+    assert.deepEqual(result, []);
+  });
+
   // Known gap: FileExtractor discovers .js files, but EnvExtractor builds the
   // TypeScript program without `allowJs`, so .js sources are silently skipped.
   // Tracked in loop/BACKLOG.md (ENV-013); not asserted until behavior is decided.
