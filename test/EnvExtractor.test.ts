@@ -68,6 +68,60 @@ describe("EnvExtractor.extract", () => {
     assert.equal(env.defaultValue, "");
   });
 
+  it("does not treat the env access as a default when it is the right operand", () => {
+    const [env] = extract({
+      "index.ts": 'const v = "x" ?? process.env.FOO;\n',
+    });
+
+    assert.equal(env.requirement, Requirement.REQUIRED);
+    assert.equal(env.defaultValue, "");
+  });
+
+  it("reads a substitution-free template literal fallback as a default", () => {
+    const [env] = extract({
+      "index.ts": "const v = process.env.FOO ?? `bar`;\n",
+    });
+
+    assert.equal(env.requirement, Requirement.OPTIONAL);
+    assert.equal(env.defaultValue, "bar");
+  });
+
+  it("does not report unsupported fallback expressions as literal defaults", () => {
+    const result = extract({
+      "index.ts": [
+        "const a = process.env.A ?? -1;",
+        "const b = process.env.B || `x` + a;",
+        "const d = process.env.E ?? true;",
+        "const e = (process.env.F) ?? 'y';",
+        "const f = process.env.G ?? { k: 1 };",
+      ].join("\n"),
+    });
+
+    assert.equal(result.length, 5);
+    for (const env of result) {
+      assert.equal(env.requirement, Requirement.REQUIRED, env.name);
+      assert.equal(env.defaultValue, "", env.name);
+    }
+  });
+
+  it("does not throw for env access in unusual parent nodes", () => {
+    const result = extract({
+      "index.ts": [
+        "const a = [process.env.A];",
+        "const b = { k: process.env.B };",
+        "const d = process.env.D!;",
+        "const e = process.env.E as string;",
+        "process.env.F;",
+        "const { G } = process.env;",
+      ].join("\n"),
+    });
+
+    assert.deepEqual(
+      result.map((e) => e.name),
+      ["A", "B", "D", "E", "F"]
+    );
+  });
+
   it("does not treat other binary operators as defaults", () => {
     const [env] = extract({
       "index.ts": 'const ok = process.env.FOO === "yes";\n',
