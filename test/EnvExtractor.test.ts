@@ -264,4 +264,85 @@ describe("EnvExtractor.extract", () => {
       { fileName: path.join(dir!, "b.js"), line: 1 },
     ]);
   });
+
+  describe("merging duplicate references", () => {
+    const merged = (files: Record<string, string>) => {
+      const result = extract(files);
+      assert.equal(result.length, 1);
+      return result[0];
+    };
+
+    it("is required when a required use follows an optional one", () => {
+      const env = merged({
+        "index.ts":
+          'const a = process.env.X ?? "d";\nconst b = process.env.X;\n',
+      });
+
+      assert.equal(env.requirement, Requirement.REQUIRED);
+      assert.equal(env.defaultValue, "");
+      assert.deepEqual(
+        env.envReference.map((r) => r.line),
+        [1, 2]
+      );
+    });
+
+    it("is required when an optional use follows a required one", () => {
+      const env = merged({
+        "index.ts":
+          'const a = process.env.X;\nconst b = process.env.X ?? "d";\n',
+      });
+
+      assert.equal(env.requirement, Requirement.REQUIRED);
+      assert.equal(env.defaultValue, "");
+      assert.deepEqual(
+        env.envReference.map((r) => r.line),
+        [1, 2]
+      );
+    });
+
+    it("exposes the shared default when all optional defaults are identical", () => {
+      const env = merged({
+        "a.ts": 'const a = process.env.X ?? "d";\n',
+        "b.ts":
+          'const b = process.env.X || "d";\nconst c = process.env.X ?? "d";\n',
+      });
+
+      assert.equal(env.requirement, Requirement.OPTIONAL);
+      assert.equal(env.defaultValue, "d");
+      assert.equal(env.envReference.length, 3);
+    });
+
+    it("leaves the default undefined when optional defaults differ", () => {
+      const env = merged({
+        "index.ts":
+          'const a = process.env.X ?? "a";\nconst b = process.env.X ?? "b";\nconst c = process.env.X ?? "a";\n',
+      });
+
+      assert.equal(env.requirement, Requirement.OPTIONAL);
+      assert.equal(env.defaultValue, undefined);
+      assert.equal(env.envReference.length, 3);
+    });
+
+    it("keeps differing defaults unavailable across files", () => {
+      const env = merged({
+        "a.ts": 'const a = process.env.X ?? "a";\n',
+        "b.ts": 'const b = process.env.X ?? "b";\n',
+      });
+
+      assert.equal(env.requirement, Requirement.OPTIONAL);
+      assert.equal(env.defaultValue, undefined);
+    });
+
+    it("is required when any reference across files has no default", () => {
+      const env = merged({
+        "a.ts": 'const a = process.env.X ?? "a";\n',
+        "b.ts": "const b = process.env.X;\n",
+        "c.ts": 'const c = process.env.X ?? "a";\n',
+      });
+
+      assert.equal(env.requirement, Requirement.REQUIRED);
+      assert.equal(env.defaultValue, "");
+      assert.equal(env.envReference.length, 3);
+    });
+  });
 });
