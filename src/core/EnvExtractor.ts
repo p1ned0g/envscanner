@@ -52,18 +52,9 @@ export class EnvExtractor {
     const extractedEnvList: EnvVariable[] = [];
     // Look into AST to extract env values
     const visit = (node: ts.Node, parent?: ts.Node): void => {
-      if (
-        // Is node a property access expression (using ".")?
-        ts.isPropertyAccessExpression(node) &&
-        // Is the expression on the left also a property access expression?
-        ts.isPropertyAccessExpression(node.expression) &&
-        // Is the expression on the left of that an Identifier?
-        ts.isIdentifier(node.expression.expression) &&
-        // Is that Identifier "process"?
-        node.expression.expression.text === "process" &&
-        // Is the property name "env"?
-        node.expression.name.text === "env"
-      ) {
+      const name = this.getEnvName(node);
+
+      if (name !== undefined) {
         const { line } = sourceFile.getLineAndCharacterOfPosition(
           node.getStart(sourceFile)
         );
@@ -71,7 +62,7 @@ export class EnvExtractor {
         const defaultValue = this.extractDefaultValue(node, parent);
 
         const extractedEnv: EnvVariable = {
-          name: node.name.text,
+          name,
           requirement:
             defaultValue === undefined
               ? Requirement.REQUIRED
@@ -94,6 +85,41 @@ export class EnvExtractor {
     visit(sourceFile);
 
     return extractedEnvList;
+  }
+
+  // Returns the variable name for `process.env.NAME`, `process.env["NAME"]` and
+  // `process.env['NAME']` (also a substitution-free template literal key).
+  // Computed keys such as `process.env[key]` are not known names: undefined.
+  private getEnvName(node: ts.Node): string | undefined {
+    if (
+      !ts.isPropertyAccessExpression(node) &&
+      !ts.isElementAccessExpression(node)
+    ) {
+      return undefined;
+    }
+
+    const target = node.expression;
+
+    if (
+      !ts.isPropertyAccessExpression(target) ||
+      !ts.isIdentifier(target.expression) ||
+      target.expression.text !== "process" ||
+      target.name.text !== "env"
+    ) {
+      return undefined;
+    }
+
+    if (ts.isPropertyAccessExpression(node)) {
+      return node.name.text;
+    }
+
+    const key = node.argumentExpression;
+
+    if (ts.isStringLiteral(key) || ts.isNoSubstitutionTemplateLiteral(key)) {
+      return key.text;
+    }
+
+    return undefined;
   }
 
   // Only `process.env.NAME ?? <literal>` and `process.env.NAME || <literal>`
