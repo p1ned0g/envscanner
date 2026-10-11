@@ -41,6 +41,10 @@ export class EnvExtractor {
     return path.relative(this.rootDir, file).split(path.sep).join("/");
   }
 
+  // Aggregation rule per variable name: required if any occurrence is required;
+  // optional only if all are. An optional aggregate keeps the default only when
+  // every occurrence agrees, otherwise it is undefined (the default varies).
+  // A required aggregate has no meaningful default and keeps "".
   private mergeEnv(envList: EnvVariable[]): EnvVariable[] {
     const mergedEnvList = new Map<string, EnvVariable>();
 
@@ -48,10 +52,23 @@ export class EnvExtractor {
       const existing = mergedEnvList.get(item.name);
 
       if (!existing) {
-        mergedEnvList.set(item.name, item);
-      } else {
-        // if name already exists, add this item's envReference to the list existing name has
-        existing.envReference.push(...item.envReference);
+        mergedEnvList.set(item.name, {
+          ...item,
+          envReference: [...item.envReference],
+        });
+        continue;
+      }
+
+      existing.envReference.push(...item.envReference);
+
+      if (
+        existing.requirement === Requirement.REQUIRED ||
+        item.requirement === Requirement.REQUIRED
+      ) {
+        existing.requirement = Requirement.REQUIRED;
+        existing.defaultValue = "";
+      } else if (existing.defaultValue !== item.defaultValue) {
+        existing.defaultValue = undefined;
       }
     }
 

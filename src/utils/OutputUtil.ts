@@ -119,6 +119,10 @@ export class OutputUtil {
       return "[required]";
     }
 
+    if (env.defaultValue === undefined) {
+      return "[optional, default varies by reference]";
+    }
+
     return `[optional, default="${env.defaultValue}"]`;
   }
 }

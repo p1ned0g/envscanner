@@ -47,6 +47,26 @@ describe("cli run() exit codes", () => {
     assert.deepEqual(stderr, []);
   });
 
+  it("reports required and varying-default statuses for merged references", () => {
+    useProject({
+      ".env.example": "REQ=fake\nVARY=fake\nSAME=fake\n",
+      "src/index.ts": [
+        'const a = process.env.REQ ?? "x";',
+        "const b = process.env.REQ;",
+        'const c = process.env.VARY ?? "x";',
+        'const d = process.env.VARY ?? "y";',
+        'const e = process.env.SAME ?? "z";',
+        'const f = process.env.SAME || "z";',
+      ].join("\n"),
+    });
+
+    assert.equal(run([]), 0);
+    const out = stdout.join("\n");
+    assert.match(out, /REQ {2}\[required\]/);
+    assert.match(out, /VARY {2}\[optional, default varies by reference\]/);
+    assert.match(out, /SAME {2}\[optional, default="z"\]/);
+  });
+
   it("returns 1 when a variable is missing from .env.example", () => {
     useProject({
       ".env.example": "SHARED=fake\n",
