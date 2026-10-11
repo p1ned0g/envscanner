@@ -13,7 +13,8 @@ export class EnvExtractor {
     this.files = files;
     this.rootDir = rootDir;
     // Make AST with Typescript Compiler
-    this.program = ts.createProgram(files, options);
+    // allowJs lets .js files be parsed; checkJs stays off so no type-checking.
+    this.program = ts.createProgram(files, { ...options, allowJs: true });
   }
 
   extract(): EnvVariable[] {
