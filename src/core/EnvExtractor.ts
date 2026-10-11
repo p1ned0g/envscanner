@@ -1,12 +1,17 @@
+import path from "path";
 import * as ts from "typescript";
 import { Requirement, type EnvVariable } from "../types/EnvVariable.js";
 
 export class EnvExtractor {
   private readonly files: string[];
   private readonly program: ts.Program;
+  private readonly rootDir: string | undefined;
 
-  constructor(files: string[], options: ts.CompilerOptions) {
+  // When rootDir is given, reference file names are reported relative to it
+  // with "/" separators so output is stable across platforms and machines.
+  constructor(files: string[], options: ts.CompilerOptions, rootDir?: string) {
     this.files = files;
+    this.rootDir = rootDir;
     // Make AST with Typescript Compiler
     this.program = ts.createProgram(files, options);
   }
@@ -26,6 +31,13 @@ export class EnvExtractor {
     }
     // Merge duplicated items
     return this.mergeEnv(extractedEnvList);
+  }
+
+  private normalizePath(file: string): string {
+    if (this.rootDir === undefined) {
+      return file;
+    }
+    return path.relative(this.rootDir, file).split(path.sep).join("/");
   }
 
   private mergeEnv(envList: EnvVariable[]): EnvVariable[] {
@@ -70,7 +82,7 @@ export class EnvExtractor {
           defaultValue: defaultValue ?? "",
           envReference: [
             {
-              fileName: file,
+              fileName: this.normalizePath(file),
               line: line + 1,
             },
           ],

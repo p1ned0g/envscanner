@@ -28,7 +28,7 @@ export class EnvScanner {
     this.envExampleList = envExampleExtractor.extract();
 
     // extract envs from files in the file list
-    const envExtractor = new EnvExtractor(fileList, {});
+    const envExtractor = new EnvExtractor(fileList, {}, process.cwd());
     this.extractedEnvList = envExtractor.extract();
   }
 
