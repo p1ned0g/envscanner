@@ -4,7 +4,7 @@ GitHub Issues are authoritative for task state. This file is only a local/runtim
 
 - **Current item:** None
 - **Status:** Ready
-- **Last completed item:** ENV-019 (issue #29): reject duplicate keys in env example (PR pending review)
+- **Last completed item:** ENV-007 (issue #30): document supported syntax and scanner behavior in README.md (PR pending review)
 - **Blockers:** Autonomous loop requires `ANTHROPIC_API_KEY`, `LOOP_APP_ID`, and `LOOP_APP_PRIVATE_KEY` repository secrets and an installed GitHub App.
 - **Next action:** Run the `Autonomous Issue Loop` workflow manually once after migrating backlog tasks to GitHub Issues.
 - **Retry count:** Workflow failure is marked with `loop:blocked`; remove that label after investigating to allow a deliberate retry.
