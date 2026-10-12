@@ -28,11 +28,22 @@ The package defines no `bin` entry and no build script yet. The CLI entry point 
 node /path/to/envscanner/dist/test/src/index.js
 ```
 
-The CLI takes no options or arguments. It scans the current working directory, so run it from the project root.
+By default it scans the current working directory, so run it from the project root, or use the options below.
+
+### CLI options
+
+| Option               | Description                                                                                                                                           |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `-h`, `--help`       | Print usage and exit `0` without scanning.                                                                                                            |
+| `-v`, `--version`    | Print the `package.json` version and exit `0` without scanning.                                                                                       |
+| `--root <directory>` | Directory to scan. Default: the current working directory.                                                                                            |
+| `--env-file <path>`  | Use this `.env.example` instead of discovering one. A relative path is resolved against `--root` when given, otherwise against the current directory. |
+
+`--option=value` is also accepted. Unknown options, missing values, and a `--root` or `--env-file` that does not exist (or is the wrong kind) print an error to stderr and exit `2`.
 
 ## What it checks
 
-1. Finds `.ts` and `.js` files under the current directory.
+1. Finds `.ts` and `.js` files under the scan root (the current directory unless `--root` is given).
 2. Extracts `process.env` references from them using the TypeScript compiler API.
 3. Parses `.env.example`.
 4. Compares the two sets of names and prints a report.
@@ -45,7 +56,8 @@ The CLI takes no options or arguments. It scans the current working directory, s
 
 ### `.env.example` location
 
-- A `.env.example` at the project root is always used.
+- With `--env-file`, that file is used and discovery is skipped.
+- Otherwise, a `.env.example` at the scan root is always used.
 - Otherwise, if exactly one `.env.example` exists in a non-excluded subdirectory, that one is used.
 - If several exist and none is at the root, it is an error listing the candidates. Add one at the root to resolve it.
 - If none exists, it is an error.
@@ -101,11 +113,11 @@ Each entry shows its requirement status and the locations (`file:line`) of the r
 
 ## Exit codes
 
-| Code | Meaning                                                                                                                                                                               |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `0`  | No missing and no unused variables.                                                                                                                                                   |
-| `1`  | At least one missing or unused variable.                                                                                                                                              |
-| `2`  | Error: unexpected argument, no source files, `.env.example` not found or ambiguous, or `.env.example` invalid (bad name, duplicate key, unmatched quote). The message goes to stderr. |
+| Code | Meaning                                                                                                                                                                                                                                                         |
+| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `0`  | No missing and no unused variables.                                                                                                                                                                                                                             |
+| `1`  | At least one missing or unused variable.                                                                                                                                                                                                                        |
+| `2`  | Error: unknown option, missing option value, invalid `--root`/`--env-file` path, unexpected argument, no source files, `.env.example` not found or ambiguous, or `.env.example` invalid (bad name, duplicate key, unmatched quote). The message goes to stderr. |
 
 ## Example
 
@@ -170,7 +182,7 @@ Summary
 
 - Not detected: destructuring (`const { NAME } = process.env`), aliasing (`const env = process.env`), `import.meta.env`, computed keys (`process.env[key]`), and template keys with substitutions.
 - Defaults are inferred only from `??` / `||` with a literal on the right; other fallbacks make the variable required.
-- Extensions and excluded directories are fixed; there is no configuration file or CLI option.
+- Extensions and excluded directories are fixed; there is no configuration file or include/exclude option.
 - `.env.example` multi-line values and variable interpolation are not supported.
 - All `.ts`/`.js` files outside the excluded directories are scanned, including tests and config files.
 - Not published to a registry; there is no installable `envscanner` command yet.
