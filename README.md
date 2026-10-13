@@ -21,12 +21,16 @@ Individual scripts from `package.json`:
 | `npm run lint`         | ESLint (`npm run lint:fix` applies fixes)                      |
 | `npm run format:check` | Prettier check (`npm run format` rewrites files)               |
 | `npm test`             | Compiles tests to `dist/test` and runs them with `node --test` |
+| `npm run build`        | Cleans and emits runtime JS to `dist/build` (no tests)         |
 
-The package defines no `bin` entry and no build script yet. The CLI entry point is `src/index.ts`; `npm test` (via `pretest`) compiles it to `dist/test/src/index.js`, which you can run from the project root you want to scan:
+The package is not published. `npm run build` compiles `src/` to `dist/build/`; the `bin` entry `envscanner` points to `dist/build/index.js`, and `files` limits the package to `dist/build`. Run the built CLI from the project root you want to scan:
 
 ```sh
-node /path/to/envscanner/dist/test/src/index.js
+npm run build
+node /path/to/envscanner/dist/build/index.js
 ```
+
+Inspect the package contents without publishing with `npm pack --dry-run`.
 
 By default it scans the current working directory, so run it from the project root, or use the options below.
 
