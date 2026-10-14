@@ -10,7 +10,7 @@
 
 ### Required repository secrets
 
-- `ANTHROPIC_API_KEY`: an Anthropic API key for Claude Code Action.
+- `CLAUDE_CODE_OAUTH_TOKEN`: the Claude Code OAuth token used by Claude Code Action.
 - `LOOP_APP_ID`: the GitHub App ID used by the loop.
 - `LOOP_APP_PRIVATE_KEY`: the private key for that GitHub App.
 

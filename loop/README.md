@@ -39,7 +39,18 @@ npm run check
 
 ## Required configuration
 
-See [GitHub Actions setup](../.github/README.md) for required repository secrets, GitHub App permissions, labels, first-run instructions, and recovery steps.
+See [GitHub Actions setup](../.github/OPERATIONS.md) for required repository secrets, GitHub App permissions, labels, first-run instructions, and recovery steps.
+
+## Phase 2 plan
+
+Phase 2 (loop reliability) consists of the following steps, listed by name only. GitHub Issues remain the source of truth for task state; this list is not a backlog.
+
+1. Documentation drift and Phase 2 tracking
+2. Test specification and test-ID check
+3. Coverage thresholds enforced in CI
+4. Conventional Commits convention, validator and PR-title format
+5. PR feedback workflow
+6. Retro and documentation
 
 ## Safety
 
