@@ -80,7 +80,8 @@ export class OutputUtil {
     console.log("✓ Matched");
     console.log("─────────");
     console.log(
-      "Environment variables defined in both\n" + "source code and .env.example.\n"
+      "Environment variables defined in both\n" +
+        "source code and .env.example.\n"
     );
 
     if (matched.length === 0) {
@@ -116,6 +117,10 @@ export class OutputUtil {
   private static formatStatus(env: EnvVariable): string {
     if (env.requirement === Requirement.REQUIRED) {
       return "[required]";
+    }
+
+    if (env.defaultValue === undefined) {
+      return "[optional, default varies by reference]";
     }
 
     return `[optional, default="${env.defaultValue}"]`;
