@@ -4,9 +4,9 @@ GitHub Issues are authoritative for task state. This file is only a local/runtim
 
 - **Current item:** None
 - **Status:** Ready
-- **Last completed item:** ENV-009 (issue #35): release and versioning policy in `RELEASING.md` (PR pending review)
-- **Blockers:** Autonomous loop requires `ANTHROPIC_API_KEY`, `LOOP_APP_ID`, and `LOOP_APP_PRIVATE_KEY` repository secrets and an installed GitHub App.
-- **Next action:** Run the `Autonomous Issue Loop` workflow manually once after migrating backlog tasks to GitHub Issues.
+- **Last completed item:** Issue #48: fixed loop documentation drift (secret name, broken link) and listed the Phase 2 steps in `loop/README.md` (PR pending review)
+- **Blockers:** Autonomous loop requires `CLAUDE_CODE_OAUTH_TOKEN`, `LOOP_APP_ID`, and `LOOP_APP_PRIVATE_KEY` repository secrets and an installed GitHub App.
+- **Next action:** After the Issue #48 PR is merged, continue with Phase 2 step 2 (test specification and test-ID check) once its Issue exists.
 - **Retry count:** Workflow failure is marked with `loop:blocked`; remove that label after investigating to allow a deliberate retry.
 
 ## Latest Verified Run
