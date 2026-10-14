@@ -32,6 +32,8 @@ node /path/to/envscanner/dist/build/index.js
 
 Inspect the package contents without publishing with `npm pack --dry-run`.
 
+Versioning, tagging, and release approval rules are in [RELEASING.md](RELEASING.md).
+
 By default it scans the current working directory, so run it from the project root, or use the options below.
 
 ### CLI options
